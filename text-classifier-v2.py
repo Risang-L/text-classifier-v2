@@ -80,7 +80,8 @@ col1, col2 = st.columns([2, 3])
 with col1:
     st.markdown(f"### Predicted Label: {label}")
     st.markdown(f"**Confidence:** {confidence:.1f}%")
-    st.progress(confidence / 100.0)
+    progress_value = max(0.0, min(1.0, float(confidence) / 100.0))
+    st.progress(progress_value)
 
 with col2:
     st.markdown("#### 🔍 SHAP Contribution Plot")
