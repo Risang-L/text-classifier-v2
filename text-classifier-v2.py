@@ -66,7 +66,8 @@ txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
 with open(txt_path, "r", encoding="utf-8") as f:
     text_input = f.read()
 
-features = X_full.iloc[[sample_id - 1]].values  # Adjust index if needed
+features_df = X_full.iloc[[sample_id - 1]]
+features = features_df.values  # Adjust index if needed
 
 # Predict
 pred = model.predict(features)[0]
@@ -97,7 +98,7 @@ st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True
 # Feature display
 st.markdown("---")
 st.subheader("📋 Feature Values")
-st.dataframe(features.to_frame(name="Value"))
+st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}))
 
 # Footer
 st.markdown("---")
