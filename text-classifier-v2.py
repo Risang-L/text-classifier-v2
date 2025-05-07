@@ -4,13 +4,16 @@ import joblib
 import shap
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
-# Load model
+# Load model and SHAP explainer
 model = joblib.load("model_xgb.pkl")
 explainer = shap.TreeExplainer(model)
 
+# Config
 st.set_page_config(page_title="AI vs Human Classifier", layout="wide")
 
+# Styles
 st.markdown("""
     <style>
     .main-title {
@@ -33,44 +36,57 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Header
 st.markdown("<div class='main-title'>🧠 AI vs Human Essay Classifier</div>", unsafe_allow_html=True)
 st.markdown("<div class='sub-text'>Classifies essays using syntactic complexity features and explains decisions using SHAP.</div>", unsafe_allow_html=True)
 
-text_input = st.text_area("✍️ Paste your essay below:", height=300)
+# Load TAASSC features
+csv_path = "X_binary.csv"  # You can change this path to match your thesis data
+X_full = pd.read_csv(csv_path)
+txt_dir = "txt_samples"  # Directory containing .txt files
 
+# Sidebar sample selection
+sample_files = [f for f in os.listdir(txt_dir) if f.endswith(".txt")]
+sample_ids = sorted([int(f.split(".")[0]) for f in sample_files])
+sample_id = st.sidebar.selectbox("Select a sample #", sample_ids)
+
+# Load text and features
+txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
+with open(txt_path, "r", encoding="utf-8") as f:
+    text_input = f.read()
+
+features = X_full.iloc[sample_id - 1]  # Adjust index if needed
+
+# Predict
+pred = model.predict([features])[0]
+prob = model.predict_proba([features])[0]
+label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
+confidence = round(np.max(prob) * 100, 2)
+bar_color = "#1E90FF" if pred == 0 else "#FF4B4B"
+
+# Display results
+col1, col2 = st.columns([2, 3])
+with col1:
+    st.markdown(f"### Predicted Label: {label}")
+    st.markdown(f"**Confidence:** {confidence:.1f}%")
+    st.progress(confidence / 100.0)
+
+with col2:
+    st.markdown("#### 🔍 SHAP Contribution Plot")
+    shap_values = explainer.shap_values([features])
+    shap.summary_plot(shap_values, pd.DataFrame([features], columns=X_full.columns), plot_type="bar", show=False)
+    st.pyplot(plt.gcf())
+
+# Essay display
 st.markdown("---")
+st.subheader("📝 Essay Sample")
+st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
 
-def extract_features(text):
-    # ⚠️ Placeholder: replace with real feature extraction logic (e.g., from TAASSC)
-    return np.zeros(model.n_features_in_)
+# Feature display
+st.markdown("---")
+st.subheader("📋 Feature Values")
+st.dataframe(features.to_frame(name="Value"))
 
-if st.button("🔍 Classify Text"):
-    if not text_input.strip():
-        st.warning("Please enter an essay to classify.")
-    else:
-        features = extract_features(text_input)
-        pred = model.predict([features])[0]
-        prob = model.predict_proba([features])[0]
-
-        label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
-        confidence = round(np.max(prob) * 100, 2)
-        bar_color = "#1E90FF" if pred == 0 else "#FF4B4B"
-
-        col1, col2 = st.columns([2, 3])
-        with col1:
-            st.markdown(f"### Predicted Label: {label}")
-            st.markdown(f"**Confidence:** {confidence:.1f}%")
-            st.progress(confidence / 100.0)
-
-        with col2:
-            st.markdown("#### 🔍 SHAP Contribution Plot")
-            shap_values = explainer.shap_values([features])
-            shap.summary_plot(shap_values, pd.DataFrame([features], columns=model.feature_names_in_), plot_type="bar", show=False)
-            st.pyplot(plt.gcf())
-
-        st.markdown("---")
-        st.subheader("📝 Your Input Essay")
-        st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
-
-        st.markdown("---")
-        st.markdown("<small>Built with ❤️ using Streamlit and SHAP • [GitHub](https://github.com)</small>", unsafe_allow_html=True)
+# Footer
+st.markdown("---")
+st.markdown("<small>Built with ❤️ using Streamlit and SHAP • Thesis project edition</small>", unsafe_allow_html=True)
