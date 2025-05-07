@@ -47,7 +47,10 @@ txt_dir = "txt_samples"  # Directory containing .txt files
 
 # Sidebar sample selection
 sample_files = [f for f in os.listdir(txt_dir) if f.endswith(".txt")]
-sample_ids = sorted([int(f.split(".")[0]) for f in sample_files])
+sample_ids = sorted([
+    int(f.split(".")[0]) for f in sample_files
+    if f.split(".")[0].isdigit()
+])
 sample_id = st.sidebar.selectbox("Select a sample #", sample_ids)
 
 # Load text and features
