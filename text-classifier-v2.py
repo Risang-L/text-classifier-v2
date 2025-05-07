@@ -66,11 +66,11 @@ txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
 with open(txt_path, "r", encoding="utf-8") as f:
     text_input = f.read()
 
-features = X_full.iloc[sample_id - 1]  # Adjust index if needed
+features = X_full.iloc[[sample_id - 1]].values  # Adjust index if needed
 
 # Predict
-pred = model.predict([features])[0]
-prob = model.predict_proba([features])[0]
+pred = model.predict(features)[0]
+prob = model.predict_proba(features)[0]
 label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
 confidence = round(np.max(prob) * 100, 2)
 bar_color = "#1E90FF" if pred == 0 else "#FF4B4B"
@@ -85,8 +85,8 @@ with col1:
 
 with col2:
     st.markdown("#### 🔍 SHAP Contribution Plot")
-    shap_values = explainer.shap_values([features])
-    shap.summary_plot(shap_values, pd.DataFrame([features], columns=X_full.columns), plot_type="bar", show=False)
+    shap_values = explainer.shap_values(features)
+    shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns), plot_type="bar", show=False)
     st.pyplot(plt.gcf())
 
 # Essay display
