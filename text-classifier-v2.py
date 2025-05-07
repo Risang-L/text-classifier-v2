@@ -67,7 +67,12 @@ with open(txt_path, "r", encoding="utf-8") as f:
     text_input = f.read()
 
 features_df = X_full.iloc[[sample_id - 1]]
-features = features_df.values  # Adjust index if needed
+features = features_df.to_numpy()
+
+# Validate shape
+if features.shape[1] != model.n_features_in_:
+    st.error(f"Mismatch in feature shape: expected {model.n_features_in_}, got {features.shape[1]}")
+    st.stop()
 
 # Predict
 pred = model.predict(features)[0]
