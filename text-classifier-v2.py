@@ -18,17 +18,14 @@ sample_numbers = sorted([f.replace(".txt", "") for f in txt_files])
 st.set_page_config(page_title="AI vs Human Essay Classifier", layout="wide")
 st.markdown("""
     <style>
-    /* Sticky header block for title + input + tabs */
-    div[data-testid="stAppViewContainer"] > div:first-child {
+    /* Sticky title + input + tabs inside main column only */
+    div.block-container > div:nth-child(1) {
         position: sticky;
         top: 0;
         background-color: white;
         z-index: 999;
         border-bottom: 1px solid #e6e6e6;
         padding-bottom: 10px;
-        max-width: 1000px;
-        margin-left: auto;
-        margin-right: auto;
     }
     /* Enlarge tab labels */
     button[data-baseweb="tab"] > div {
