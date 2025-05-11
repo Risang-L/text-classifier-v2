@@ -94,5 +94,5 @@ with col2:
     shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns),
                       plot_type="bar", show=False)
     fig = plt.gcf()
-    fig.set_size_inches(5, 4)   # smaller SHAP plot
+    fig.set_size_inches(4, 3)   # smaller SHAP plot
     st.pyplot(fig, clear_figure=True, use_container_width=True)
