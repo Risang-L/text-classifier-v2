@@ -25,14 +25,12 @@ st.markdown("""
         z-index: 999;
         padding-bottom: 0.5rem;
     }
-    /* Style the tabs */
     div[data-testid="stTabs"] > div > div:first-child {
         position: sticky;
         top: 5rem;
         background-color: white;
         z-index: 998;
     }
-    /* Improve input and tab appearance */
     input, button[data-baseweb="tab"] > div {
         font-size: 1.1rem;
     }
@@ -58,11 +56,10 @@ if not os.path.exists(txt_path):
     st.error(f"❌ Sample {sample_num} not found.")
     st.stop()
 
-# Load text
+# --- Load text and features ---
 with open(txt_path, "r", encoding="utf-8") as f:
     essay_text = f.read()
 
-# Load features
 features_df = X_full.iloc[[sample_num - 1]]
 features = features_df.to_numpy()
 
@@ -77,7 +74,7 @@ color = "#1E90FF" if pred == 0 else "#FF4B4B"
 # --- Tabs ---
 tab1, tab2 = st.tabs(["📝 Essay & Features", "🔍 Prediction & Explanation"])
 
-# --- Tab 1: Essay and Features ---
+# --- Tab 1 ---
 with tab1:
     st.subheader("Essay Sample")
     st.markdown(f"""
@@ -90,11 +87,10 @@ with tab1:
     st.subheader("Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}))
 
-# --- Tab 2: Prediction and SHAP ---
+# --- Tab 2 with SHAP FIX ---
 with tab2:
     st.subheader(f"Predicted Label: {label}")
 
-    # Custom confidence bar
     st.markdown(f"""
     <div style="height: 30px; background-color: #eee; border-radius: 20px; overflow: hidden; margin-bottom: 1rem;">
         <div style="height: 100%; width: {confidence}%; background-color: {color};
@@ -105,22 +101,21 @@ with tab2:
     """, unsafe_allow_html=True)
 
     st.subheader("SHAP Waterfall Plot")
-    
-    # SHAP plot properly
+
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(features)
-    
-    shap_expl = shap.Explanation(
+
+    single_explanation = shap.Explanation(
         values=shap_values[0],
         base_values=explainer.expected_value,
         data=features[0],
         feature_names=X_full.columns.tolist()
     )
 
-    shap.plots.waterfall(shap_expl, show=False)
-    st.pyplot(plt.gcf())
+    fig = plt.figure(figsize=(6, 6))
+    shap.plots.waterfall(single_explanation, show=False)
+    st.pyplot(fig)
 
-    # Legend
     st.markdown("""
     <div style="margin-top:1rem; font-size: 0.9rem;">
         <span style="color: crimson;">🔴 Pushes toward Human</span> &nbsp;&nbsp;
