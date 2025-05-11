@@ -39,7 +39,6 @@ Data preprocessing by TAASSC.
 
 - The `.txt` files in [`txt_samples/`](./txt_samples) are included **only for demonstration and learning purposes**.  
   They are not licensed for reuse, redistribution, or commercial use.  
-  See [`txt_samples/LICENSE.txt`](./txt_samples/LICENSE.txt) for full terms.
 
 - The dataset file `X_binary.csv` is private and is **not licensed** for reuse, redistribution, or modification.  
   It is shared solely for demonstration purposes and should not be used for any other purpose.
