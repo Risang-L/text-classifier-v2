@@ -14,24 +14,20 @@ txt_folder = "txt_samples"
 model = joblib.load(model_path)
 explainer = shap.TreeExplainer(model)
 
-st.set_page_config(page_title="AI vs Human Classifier")
+st.set_page_config(page_title="AI vs Human Essay Classifier")
 
 st.markdown("""
     <style>
     .essay-box {
         background-color: #f5f7fa;
-        padding: 1.2rem;
-        border-radius: 12px;
+        padding: 1rem;
+        border-radius: 10px;
         border: 1px solid #ddd;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
         font-family: 'Courier New', monospace;
         font-size: 0.92rem;
-        max-height: 250px;
+        max-height: 300px;
         overflow-y: auto;
-    }
-    .block-container {
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
     }
     .stDataFrame div {
         font-size: 0.85rem;
@@ -40,6 +36,8 @@ st.markdown("""
     footer {display: none;}
     </style>
 """, unsafe_allow_html=True)
+
+st.title("🧠 AI vs Human Essay Classifier")
 
 # --- Load data ---
 X_full = pd.read_csv(csv_path)
@@ -51,83 +49,85 @@ if not sample_ids:
     st.error("No valid numeric .txt files found in the folder.")
     st.stop()
 
-# --- Layout inside container ---
-with st.container():
-    col1, col2 = st.columns([2, 3])
+sample_input = st.text_input("Sample #:", value=str(min(sample_ids)))
+try:
+    sample_id = int(sample_input)
+    if sample_id not in sample_ids:
+        st.error(f"Please enter a valid sample number between {min(sample_ids)} and {max(sample_ids)}")
+        st.stop()
+except ValueError:
+    st.error("Please enter a valid integer sample number.")
+    st.stop()
 
-    with col1:
-        sample_input = st.text_input("Sample #:", value=str(min(sample_ids)))
-        try:
-            sample_id = int(sample_input)
-            if sample_id not in sample_ids:
-                st.error(f"Please enter a valid sample number between {min(sample_ids)} and {max(sample_ids)}")
-                st.stop()
-        except ValueError:
-            st.error("Please enter a valid integer sample number.")
-            st.stop()
+txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
+with open(txt_path, "r", encoding="utf-8") as f:
+    text_input = f.read()
 
-        txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
-        with open(txt_path, "r", encoding="utf-8") as f:
-            text_input = f.read()
+features_df = X_full.iloc[[sample_id - 1]]
+features = features_df.to_numpy()
 
-        features_df = X_full.iloc[[sample_id - 1]]
-        features = features_df.to_numpy()
+if features.shape[1] != model.n_features_in_:
+    st.error(f"Mismatch in feature shape: expected {model.n_features_in_}, got {features.shape[1]}")
+    st.stop()
 
-        if features.shape[1] != model.n_features_in_:
-            st.error(f"Mismatch in feature shape: expected {model.n_features_in_}, got {features.shape[1]}")
-            st.stop()
+# --- Tabs layout ---
+tab1, tab2 = st.tabs(["📝 Essay & Features", "🤖 Prediction & Explanation"])
 
-        st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
-        st.markdown("### 📋 Feature Values")
-        st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
+with tab1:
+    st.subheader("Essay Sample")
+    st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
 
-    with col2:
-        pred = model.predict(features)[0]
-        prob = model.predict_proba(features)[0]
-        label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
-        confidence = round(np.max(prob) * 100, 2)
+    st.subheader("📋 Feature Values")
+    st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
 
-        st.markdown(f"### Predicted Label: {label}")
+with tab2:
+    pred = model.predict(features)[0]
+    prob = model.predict_proba(features)[0]
+    label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
+    confidence = round(np.max(prob) * 100, 2)
 
-        # 🎯 Custom rounded confidence bar
-        bar_color = "#FF4B4B" if pred == 0 else "#1E90FF"
-        st.markdown(f"**Confidence:**")
-        st.markdown(f"""
-            <div style="background-color: #e0e0e0; border-radius: 25px; height: 25px; width: 100%;">
-                <div style="
-                    background-color: {bar_color};
-                    width: {confidence}%;
-                    height: 100%;
-                    border-radius: 25px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-weight: bold;
-                ">{confidence:.1f}%</div>
-            </div>
-        """, unsafe_allow_html=True)
+    st.subheader("Prediction Result")
+    st.markdown(f"### Predicted Label: {label}")
 
-        st.markdown("#### 🔍 SHAP Waterfall Plot")
-        shap_values = explainer.shap_values(features)
-        plt.clf()
-        plt.rcParams.update({'font.size': 4})
+    # 🎯 Custom confidence bar
+    bar_color = "#FF4B4B" if pred == 0 else "#1E90FF"
+    st.markdown(f"**Confidence:**")
+    st.markdown(f"""
+        <div style="background-color: #e0e0e0; border-radius: 25px; height: 25px; width: 100%;">
+            <div style="
+                background-color: {bar_color};
+                width: {confidence}%;
+                height: 100%;
+                border-radius: 25px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+            ">{confidence:.1f}%</div>
+        </div>
+    """, unsafe_allow_html=True)
 
-        shap.plots._waterfall.waterfall_legacy(
-            explainer.expected_value,
-            shap_values[0],
-            feature_names=X_full.columns
-        )
+    st.subheader("🔍 SHAP Waterfall Plot")
+    shap_values = explainer.shap_values(features)
+    plt.clf()
+    plt.rcParams.update({'font.size': 8})
 
-        # 🎯 Manually shrink all SHAP fonts
-        ax = plt.gca()
-        for item in ax.get_xticklabels() + ax.get_yticklabels():
-            item.set_fontsize(2)
-        ax.title.set_fontsize(2)
-        ax.xaxis.label.set_fontsize(2)
-        ax.yaxis.label.set_fontsize(2)
+    shap.plots._waterfall.waterfall_legacy(
+        explainer.expected_value,
+        shap_values[0],
+        feature_names=X_full.columns
+    )
 
-        fig = plt.gcf()
-        fig.set_size_inches(3, 2)
-        fig.set_dpi(100)
-        st.pyplot(fig, clear_figure=True, use_container_width=True)
+    # 🎯 Shrink SHAP plot font sizes
+    ax = plt.gca()
+    for item in ax.get_xticklabels() + ax.get_yticklabels():
+        item.set_fontsize(6)
+    ax.title.set_fontsize(6)
+    ax.xaxis.label.set_fontsize(6)
+    ax.yaxis.label.set_fontsize(6)
+
+    fig = plt.gcf()
+    fig.set_size_inches(3, 2)
+    fig.set_dpi(100)
+    st.pyplot(fig, clear_figure=True, use_container_width=True)
