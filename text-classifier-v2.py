@@ -140,6 +140,3 @@ with col2:
     fig.set_size_inches(4, 3)
     st.pyplot(fig, clear_figure=True, use_container_width=True)
 
-# --- Footer ---
-st.markdown("---")
-st.markdown("<small>Built with ❤️ using Streamlit and SHAP • Thesis project edition</small>", unsafe_allow_html=True)
