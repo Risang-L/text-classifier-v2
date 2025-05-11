@@ -16,6 +16,7 @@ explainer = shap.TreeExplainer(model)
 
 st.set_page_config(page_title="AI vs Human Essay Classifier")
 
+# --- CSS ---
 st.markdown("""
     <style>
     .essay-box {
@@ -34,41 +35,41 @@ st.markdown("""
     }
     #MainMenu {display: none;}
     footer {display: none;}
-    .sticky {
+    /* sticky input + tabs */
+    [data-testid="stVerticalBlock"] > div:first-child {
         position: sticky;
         top: 0;
-        background-color: white;
         z-index: 999;
-        padding-top: 10px;
-        padding-bottom: 10px;
+        background-color: white;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Sticky header ---
-with st.container():
-    st.markdown('<div class="sticky">', unsafe_allow_html=True)
-    st.title("AI vs Human Essay Classifier")
-    # --- Load data ---
-    X_full = pd.read_csv(csv_path)
-    txt_dir = txt_folder
-    sample_files = [f for f in os.listdir(txt_dir) if f.endswith(".txt") and f.split(".")[0].isdigit()]
-    sample_ids = sorted([int(f.split(".")[0]) for f in sample_files if f.split(".")[0].isdigit()])
+# --- HEADER + INPUT ---
+st.title("🧠 AI vs Human Essay Classifier")
 
-    if not sample_ids:
-        st.error("No valid numeric .txt files found in the folder.")
-        st.stop()
+# --- Load data ---
+X_full = pd.read_csv(csv_path)
+txt_dir = txt_folder
+sample_files = [f for f in os.listdir(txt_dir) if f.endswith(".txt") and f.split(".")[0].isdigit()]
+sample_ids = sorted([int(f.split(".")[0]) for f in sample_files if f.split(".")[0].isdigit()])
 
-    sample_input = st.text_input("Sample #:", value=str(min(sample_ids)))
-    try:
-        sample_id = int(sample_input)
-        if sample_id not in sample_ids:
-            st.error(f"Please enter a valid sample number between {min(sample_ids)} and {max(sample_ids)}")
-            st.stop()
-    except ValueError:
-        st.error("Please enter a valid integer sample number.")
+if not sample_ids:
+    st.error("No valid numeric .txt files found in the folder.")
+    st.stop()
+
+sample_input = st.text_input("Sample #:", value=str(min(sample_ids)))
+try:
+    sample_id = int(sample_input)
+    if sample_id not in sample_ids:
+        st.error(f"Please enter a valid sample number between {min(sample_ids)} and {max(sample_ids)}")
         st.stop()
-    st.markdown('</div>', unsafe_allow_html=True)
+except ValueError:
+    st.error("Please enter a valid integer sample number.")
+    st.stop()
 
 txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
 with open(txt_path, "r", encoding="utf-8") as f:
@@ -81,14 +82,14 @@ if features.shape[1] != model.n_features_in_:
     st.error(f"Mismatch in feature shape: expected {model.n_features_in_}, got {features.shape[1]}")
     st.stop()
 
-# --- Tabs layout ---
+# --- Tabs ---
 tab1, tab2 = st.tabs(["📝 Essay & Features", "🤖 Prediction & Explanation"])
 
 with tab1:
     st.subheader("Essay Sample")
     st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
 
-    st.subheader("Feature Values")
+    st.subheader("📋 Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
 
 with tab2:
@@ -97,14 +98,15 @@ with tab2:
     label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
     confidence = round(np.max(prob) * 100, 2)
 
-    # --- Match SHAP colors ---
+    # --- SHAP color matching ---
     shap_ai_color = "#1f77b4"
     shap_human_color = "#ff0052"
     bar_color = shap_ai_color if pred == 0 else shap_human_color
 
+    st.subheader("Prediction Result")
     st.markdown(f"### Predicted Label: {label}")
 
-    # 🎯 Custom confidence bar
+    # --- Confidence bar ---
     st.markdown(f"**Confidence:**")
     st.markdown(f"""
         <div style="background-color: #e0e0e0; border-radius: 25px; height: 25px; width: 100%;">
@@ -122,8 +124,8 @@ with tab2:
         </div>
     """, unsafe_allow_html=True)
 
-    # --- SHAP plot ---
-    st.subheader("SHAP Waterfall Plot")
+    # --- SHAP Waterfall Plot ---
+    st.subheader("🔍 SHAP Waterfall Plot")
     shap_values = explainer.shap_values(features)
 
     plt.clf()
@@ -135,12 +137,18 @@ with tab2:
         feature_names=X_full.columns
     ), show=False)
 
-    # 🎯 Remove duplicate = value text
+    # --- Robust fix for duplicate = value labels ---
+    labels_seen = set()
     for text in ax.texts:
-        if text.get_text().startswith('=') and text.get_position()[0] < 0.1:
-            text.set_visible(False)
+        t = text.get_text()
+        if t.startswith("="):
+            rounded_value = round(float(t.split("=")[-1].strip()), 3)
+            if rounded_value in labels_seen:
+                text.set_visible(False)
+            else:
+                labels_seen.add(rounded_value)
 
     st.pyplot(fig, clear_figure=True, use_container_width=True)
 
-    # 🎯 SHAP Legend
+    # --- SHAP Legend ---
     st.markdown("🔴 = Pushes toward SLW &nbsp;&nbsp;&nbsp;&nbsp; 🔵 = Pushes toward AI", unsafe_allow_html=True)
