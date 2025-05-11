@@ -53,9 +53,9 @@ if not sample_ids:
 col1, col2 = st.columns([2, 3])
 
 with col1:
-    # Number input directly above essay
+    # Number input replaces essay title
     sample_id = st.number_input(
-        "Enter sample number:",
+        "Enter sample number to display essay:",
         min_value=min(sample_ids),
         max_value=max(sample_ids),
         value=min(sample_ids),
@@ -74,7 +74,6 @@ with col1:
         st.error(f"Mismatch in feature shape: expected {model.n_features_in_}, got {features.shape[1]}")
         st.stop()
 
-    st.markdown("### 📝 Essay Sample")
     st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
     st.markdown("### 📋 Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
@@ -91,8 +90,9 @@ with col2:
     st.markdown("#### 🔍 SHAP Contribution Plot")
     shap_values = explainer.shap_values(features)
     plt.clf()
+    plt.rcParams.update({'font.size': 8})   # 🎯 reduce SHAP font size
     shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns),
                       plot_type="bar", show=False)
     fig = plt.gcf()
-    fig.set_size_inches(4, 3)   # smaller SHAP plot
+    fig.set_size_inches(4, 3)
     st.pyplot(fig, clear_figure=True, use_container_width=True)
