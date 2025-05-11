@@ -39,16 +39,6 @@ st.markdown("""
     /* 🎯 Completely remove Streamlit footer + hamburger */
     #MainMenu {display: none;}
     footer {display: none;}
-    /* 🎯 Make number input full width + remove stepper buttons */
-    input[type=number] {
-        width: 100% !important;
-        -moz-appearance: textfield;
-    }
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -66,14 +56,15 @@ if not sample_ids:
 col1, col2 = st.columns([2, 3])
 
 with col1:
-    sample_id = st.number_input(
-        "Enter sample number to display essay:",
-        min_value=min(sample_ids),
-        max_value=max(sample_ids),
-        value=min(sample_ids),
-        step=1
-    )
-    sample_id = int(sample_id)
+    sample_input = st.text_input("Sample #:", value=str(min(sample_ids)))
+    try:
+        sample_id = int(sample_input)
+        if sample_id not in sample_ids:
+            st.error(f"Please enter a valid sample number between {min(sample_ids)} and {max(sample_ids)}")
+            st.stop()
+    except ValueError:
+        st.error("Please enter a valid integer sample number.")
+        st.stop()
 
     txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
     with open(txt_path, "r", encoding="utf-8") as f:
@@ -140,4 +131,3 @@ with col2:
     fig.set_size_inches(3, 2)    # 🎯 final size to shrink fonts
     fig.set_dpi(100)
     st.pyplot(fig, clear_figure=True, use_container_width=True)
-
