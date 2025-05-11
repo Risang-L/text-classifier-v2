@@ -16,7 +16,7 @@ explainer = shap.TreeExplainer(model)
 
 st.set_page_config(page_title="AI vs Human Classifier", layout="wide")
 
-st.markdown(\"""
+st.markdown("""
     <style>
     .essay-box {
         background-color: #f5f7fa;
@@ -33,7 +33,7 @@ st.markdown(\"""
         padding-bottom: 1rem;
     }
     </style>
-\""", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 X_full = pd.read_csv(csv_path)
 txt_dir = txt_folder
@@ -80,4 +80,5 @@ with col2:
     st.markdown("### 📋 Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
 
-
+st.markdown("---")
+st.markdown("<small>Built with ❤️ using Streamlit and SHAP • Thesis project edition</small>", unsafe_allow_html=True)
