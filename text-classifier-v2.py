@@ -48,7 +48,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Header
-st.markdown("<div class='main-title'>🧠 AI vs Human Essay Classifier</div>", unsafe_allow_html=True)
+st.markdown("<div class='main-title'>AI vs Human Essay Classifier</div>", unsafe_allow_html=True)
 st.markdown("<div class='sub-text'>Classifies essays using syntactic complexity features and explains decisions using SHAP.</div>", unsafe_allow_html=True)
 
 # Load TAASSC features
