@@ -22,7 +22,7 @@ st.set_page_config(page_title="AI vs Human Classifier", layout="wide")
 st.markdown("""
     <style>
     .main-title {
-        font-size: 2.2rem;
+        font-size: 1.8rem;
         font-weight: bold;
         color: #1E90FF;
     }
