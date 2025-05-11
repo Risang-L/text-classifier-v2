@@ -34,30 +34,41 @@ st.markdown("""
     }
     #MainMenu {display: none;}
     footer {display: none;}
+    .sticky {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 999;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("AI vs Human Essay Classifier")
+# --- Sticky header ---
+with st.container():
+    st.markdown('<div class="sticky">', unsafe_allow_html=True)
+    st.title("AI vs Human Essay Classifier")
+    # --- Load data ---
+    X_full = pd.read_csv(csv_path)
+    txt_dir = txt_folder
+    sample_files = [f for f in os.listdir(txt_dir) if f.endswith(".txt") and f.split(".")[0].isdigit()]
+    sample_ids = sorted([int(f.split(".")[0]) for f in sample_files if f.split(".")[0].isdigit()])
 
-# --- Load data ---
-X_full = pd.read_csv(csv_path)
-txt_dir = txt_folder
-sample_files = [f for f in os.listdir(txt_dir) if f.endswith(".txt") and f.split(".")[0].isdigit()]
-sample_ids = sorted([int(f.split(".")[0]) for f in sample_files if f.split(".")[0].isdigit()])
-
-if not sample_ids:
-    st.error("No valid numeric .txt files found in the folder.")
-    st.stop()
-
-sample_input = st.text_input("Sample #:", value=str(min(sample_ids)))
-try:
-    sample_id = int(sample_input)
-    if sample_id not in sample_ids:
-        st.error(f"Please enter a valid sample number between {min(sample_ids)} and {max(sample_ids)}")
+    if not sample_ids:
+        st.error("No valid numeric .txt files found in the folder.")
         st.stop()
-except ValueError:
-    st.error("Please enter a valid integer sample number.")
-    st.stop()
+
+    sample_input = st.text_input("Sample #:", value=str(min(sample_ids)))
+    try:
+        sample_id = int(sample_input)
+        if sample_id not in sample_ids:
+            st.error(f"Please enter a valid sample number between {min(sample_ids)} and {max(sample_ids)}")
+            st.stop()
+    except ValueError:
+        st.error("Please enter a valid integer sample number.")
+        st.stop()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
 with open(txt_path, "r", encoding="utf-8") as f:
@@ -86,11 +97,14 @@ with tab2:
     label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
     confidence = round(np.max(prob) * 100, 2)
 
-    st.subheader("Prediction Result")
+    # --- Match SHAP colors ---
+    shap_ai_color = "#1f77b4"
+    shap_human_color = "#ff0052"
+    bar_color = shap_ai_color if pred == 0 else shap_human_color
+
     st.markdown(f"### Predicted Label: {label}")
 
     # 🎯 Custom confidence bar
-    bar_color = "#1E90FF" if pred == 0 else "#FF4B4B" 
     st.markdown(f"**Confidence:**")
     st.markdown(f"""
         <div style="background-color: #e0e0e0; border-radius: 25px; height: 25px; width: 100%;">
@@ -108,14 +122,25 @@ with tab2:
         </div>
     """, unsafe_allow_html=True)
 
+    # --- SHAP plot ---
     st.subheader("SHAP Waterfall Plot")
     shap_values = explainer.shap_values(features)
 
-    # 🎯 Full SHAP waterfall with feature values
+    plt.clf()
+    fig, ax = plt.subplots(figsize=(4, 3))
     shap.plots.waterfall(shap.Explanation(
         values=shap_values[0],
         base_values=explainer.expected_value,
         data=features[0],
         feature_names=X_full.columns
-    ))
-    st.pyplot(plt.gcf(), clear_figure=True, use_container_width=True)
+    ), show=False)
+
+    # 🎯 Remove duplicate = value text
+    for text in ax.texts:
+        if text.get_text().startswith('=') and text.get_position()[0] < 0.1:
+            text.set_visible(False)
+
+    st.pyplot(fig, clear_figure=True, use_container_width=True)
+
+    # 🎯 SHAP Legend
+    st.markdown("🔴 = Pushes toward SLW &nbsp;&nbsp;&nbsp;&nbsp; 🔵 = Pushes toward AI", unsafe_allow_html=True)
