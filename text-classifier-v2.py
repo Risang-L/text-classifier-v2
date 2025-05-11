@@ -14,7 +14,7 @@ txt_folder = "txt_samples"
 model = joblib.load(model_path)
 explainer = shap.TreeExplainer(model)
 
-st.set_page_config(page_title="AI vs Human Essay Classifier")
+st.set_page_config(page_title="AI vs Human Essay Classifier", layout="wide")
 
 # --- CSS ---
 st.markdown("""
@@ -35,42 +35,50 @@ st.markdown("""
     }
     #MainMenu {display: none;}
     footer {display: none;}
-    /* sticky input + tabs */
-    [data-testid="stVerticalBlock"] > div:first-child {
+    .sticky-header {
+        position: -webkit-sticky;
         position: sticky;
         top: 0;
-        z-index: 999;
         background-color: white;
+        z-index: 999;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
         padding-top: 8px;
         padding-bottom: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- HEADER + INPUT ---
-st.title("🧠 AI vs Human Essay Classifier")
+# --- Sticky HEADER container ---
+with st.container():
+    st.markdown('<div class="sticky-header">', unsafe_allow_html=True)
+
+    st.title("AI vs Human Essay Classifier")
+
+    # Load sample options
+    X_full = pd.read_csv(csv_path)
+    txt_dir = txt_folder
+    sample_files = [f for f in os.listdir(txt_dir) if f.endswith(".txt") and f.split(".")[0].isdigit()]
+    sample_ids = sorted([int(f.split(".")[0]) for f in sample_files])
+
+    if not sample_ids:
+        st.error("No valid numeric .txt files found.")
+        st.stop()
+
+    sample_input = st.text_input("Sample #:", value=str(min(sample_ids)))
+    try:
+        sample_id = int(sample_input)
+        if sample_id not in sample_ids:
+            st.error(f"Enter a number between {min(sample_ids)} and {max(sample_ids)}")
+            st.stop()
+    except ValueError:
+        st.error("Enter a valid integer.")
+        st.stop()
+
+    tab1, tab2 = st.tabs(["📝 Essay & Features", "🤖 Prediction & Explanation"])
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Load data ---
-X_full = pd.read_csv(csv_path)
-txt_dir = txt_folder
-sample_files = [f for f in os.listdir(txt_dir) if f.endswith(".txt") and f.split(".")[0].isdigit()]
-sample_ids = sorted([int(f.split(".")[0]) for f in sample_files if f.split(".")[0].isdigit()])
-
-if not sample_ids:
-    st.error("No valid numeric .txt files found in the folder.")
-    st.stop()
-
-sample_input = st.text_input("Sample #:", value=str(min(sample_ids)))
-try:
-    sample_id = int(sample_input)
-    if sample_id not in sample_ids:
-        st.error(f"Please enter a valid sample number between {min(sample_ids)} and {max(sample_ids)}")
-        st.stop()
-except ValueError:
-    st.error("Please enter a valid integer sample number.")
-    st.stop()
-
 txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
 with open(txt_path, "r", encoding="utf-8") as f:
     text_input = f.read()
@@ -79,26 +87,24 @@ features_df = X_full.iloc[[sample_id - 1]]
 features = features_df.to_numpy()
 
 if features.shape[1] != model.n_features_in_:
-    st.error(f"Mismatch in feature shape: expected {model.n_features_in_}, got {features.shape[1]}")
+    st.error(f"Feature shape mismatch: expected {model.n_features_in_}, got {features.shape[1]}")
     st.stop()
 
-# --- Tabs ---
-tab1, tab2 = st.tabs(["📝 Essay & Features", "🤖 Prediction & Explanation"])
-
+# --- Tab 1 ---
 with tab1:
     st.subheader("Essay Sample")
     st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
 
-    st.subheader("📋 Feature Values")
+    st.subheader("Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
 
+# --- Tab 2 ---
 with tab2:
     pred = model.predict(features)[0]
     prob = model.predict_proba(features)[0]
     label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
     confidence = round(np.max(prob) * 100, 2)
 
-    # --- SHAP color matching ---
     shap_ai_color = "#1f77b4"
     shap_human_color = "#ff0052"
     bar_color = shap_ai_color if pred == 0 else shap_human_color
@@ -106,8 +112,7 @@ with tab2:
     st.subheader("Prediction Result")
     st.markdown(f"### Predicted Label: {label}")
 
-    # --- Confidence bar ---
-    st.markdown(f"**Confidence:**")
+    st.markdown("**Confidence:**")
     st.markdown(f"""
         <div style="background-color: #e0e0e0; border-radius: 25px; height: 25px; width: 100%;">
             <div style="
@@ -124,7 +129,6 @@ with tab2:
         </div>
     """, unsafe_allow_html=True)
 
-    # --- SHAP Waterfall Plot ---
     st.subheader("🔍 SHAP Waterfall Plot")
     shap_values = explainer.shap_values(features)
 
@@ -137,18 +141,12 @@ with tab2:
         feature_names=X_full.columns
     ), show=False)
 
-    # --- Robust fix for duplicate = value labels ---
-    labels_seen = set()
-    for text in ax.texts:
-        t = text.get_text()
-        if t.startswith("="):
-            rounded_value = round(float(t.split("=")[-1].strip()), 3)
-            if rounded_value in labels_seen:
-                text.set_visible(False)
-            else:
-                labels_seen.add(rounded_value)
+    # --- Robust fix for duplicate labels ---
+    value_labels = [text for text in ax.texts if text.get_text().strip().startswith('=')]
+    if len(value_labels) > 1:
+        for t in value_labels[:-1]:  # hide all but last
+            t.set_visible(False)
 
     st.pyplot(fig, clear_figure=True, use_container_width=True)
 
-    # --- SHAP Legend ---
     st.markdown("🔴 = Pushes toward SLW &nbsp;&nbsp;&nbsp;&nbsp; 🔵 = Pushes toward AI", unsafe_allow_html=True)
