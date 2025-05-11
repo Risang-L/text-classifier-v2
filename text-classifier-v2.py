@@ -90,9 +90,12 @@ with col2:
     st.markdown("#### 🔍 SHAP Contribution Plot")
     shap_values = explainer.shap_values(features)
     plt.clf()
-    plt.rcParams.update({'font.size': 6})  
+    plt.rcParams.update({'font.size': 2})  
     shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns),
                       plot_type="bar", show=False)
     fig = plt.gcf()
     fig.set_size_inches(4, 3)
     st.pyplot(fig, clear_figure=True, use_container_width=True)
+    
+# --- Footer ---
+st.markdown("---")
