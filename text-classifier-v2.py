@@ -14,21 +14,23 @@ txt_folder = "txt_samples"
 # --- Configure page ---
 st.set_page_config(page_title="AI vs Human Essay Classifier", layout="centered")
 
-# --- Custom CSS for sticky input + tabs ---
+# --- Custom CSS for sticky input and tabs ---
 st.markdown("""
     <style>
-    /* Sticky input + tabs */
-    .sticky-container {
+    /* Sticky input and tabs */
+    .sticky-header {
         position: sticky;
-        top: 1rem;
+        top: 0;
         background-color: white;
         z-index: 999;
+        padding-top: 1rem;
         padding-bottom: 0.5rem;
+        border-bottom: 1px solid #ddd;
     }
     /* Style the tabs */
     div[data-testid="stTabs"] > div > div:first-child {
         position: sticky;
-        top: 5rem;
+        top: 4.5rem;
         background-color: white;
         z-index: 998;
     }
@@ -41,7 +43,7 @@ st.markdown("""
 
 # --- Sticky Input ---
 with st.container():
-    st.markdown('<div class="sticky-container">', unsafe_allow_html=True)
+    st.markdown('<div class="sticky-header">', unsafe_allow_html=True)
     st.title("🧠 AI vs Human Essay Classifier")
     sample_id = st.text_input("Sample #", value="1", max_chars=3)
     st.markdown("</div>", unsafe_allow_html=True)
