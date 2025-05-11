@@ -53,7 +53,6 @@ if not sample_ids:
 col1, col2 = st.columns([2, 3])
 
 with col1:
-    # Number input replaces essay title
     sample_id = st.number_input(
         "Enter sample number to display essay:",
         min_value=min(sample_ids),
@@ -87,15 +86,23 @@ with col2:
     st.markdown(f"### Predicted Label: {label}")
     st.markdown(f"**Confidence:** {confidence:.1f}%")
     st.progress(max(0.0, min(1.0, float(confidence) / 100.0)))
-    st.markdown("#### 🔍 SHAP Contribution Plot")
+    st.markdown("#### 🔍 SHAP Waterfall Plot")
+
     shap_values = explainer.shap_values(features)
     plt.clf()
-    plt.rcParams.update({'font.size': 2})  
-    shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns),
-                      plot_type="bar", show=False)
+    plt.rcParams.update({'font.size': 8})
+
+    # 🎯 Waterfall plot for single sample
+    shap.plots._waterfall.waterfall_legacy(
+        explainer.expected_value,
+        shap_values[0],
+        feature_names=X_full.columns
+    )
+
     fig = plt.gcf()
     fig.set_size_inches(4, 3)
     st.pyplot(fig, clear_figure=True, use_container_width=True)
-    
+
 # --- Footer ---
 st.markdown("---")
+st.markdown("<small>Built with ❤️ using Streamlit and SHAP • Thesis project edition</small>", unsafe_allow_html=True)
