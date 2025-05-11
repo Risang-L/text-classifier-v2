@@ -126,10 +126,10 @@ with tab2:
     # ✅ The fix
     import matplotlib.pyplot as plt
     plt.clf()
-    plt.close()
+    plt.close(all)
     fig, ax = plt.subplots(figsize=(6, 4), dpi=100)
-    shap.plots.waterfall(shap_expl, show=False, ax=ax)
-    st.pyplot(fig)
+    shap.plots.waterfall(shap_expl, show=False)
+    st.pyplot(plt.gcf())
 
     # Legend
     st.markdown("""
