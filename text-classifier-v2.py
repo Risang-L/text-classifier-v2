@@ -106,6 +106,3 @@ with col2:
     st.markdown("### 📋 Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
 
-# Footer
-st.markdown("---")
-st.markdown("<small>Built with ❤️ using Streamlit and SHAP • Thesis project edition</small>", unsafe_allow_html=True)
