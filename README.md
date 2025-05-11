@@ -1,33 +1,17 @@
 
 # Text Classifier v2: AI vs SLW (Second Language Writers)
-
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](https://www.python.org/)  
-[![Streamlit](https://img.shields.io/badge/Built%20with-Streamlit-ff4b4b)](https://streamlit.io/)  
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 This project is an extension of [Text Classifier v1](https://github.com/Risang-L/text-classifier), using a stronger **XGBoost model** and larger dataset. It explores linguistic data science and syntactic complexity modeling.
 
-[Live App](https://text-classifier-cgjwc5d4nmgp8afaxdcuzsie.streamlit.app/)
+[Live App]()
 
 ---
 
-## Table of Contents
+## Improvements over v1
 
-- [Features](#features)  
-- [About the syntactic Complexity Indices](#about-the-syntactic-complexity-indices)  
-- [Data Overview](#data-overview)  
-- [Improvements over v1](#improvements-over-v1)  
-- [Acknowledgements](#acknowledgements)  
-
----
-
-## Features
-
-- Load real-world `.txt` samples by index  
-- Visualize syntactic complexity indices (e.g., MLS, CN_C, VP_T)  
-- Generate classification results with confidence scores  
-- Explore SHAP waterfall plots to interpret predictions  
-
+- Upgraded from Random Forest to **XGBoost**
+- Doubled dataset for training (from 300 → 1000 samples)
+- More stable predictions and improved feature interpretability
+  
 ---
 
 ## About the syntactic Complexity Indices
@@ -40,7 +24,7 @@ Predictions are supported by SHAP contribution plots, showing how each feature i
 
 ## Data Overview
 
-The dataset consists of **1,000+ writing samples** divided into two categories:
+The dataset used for model training consists of **1,000 writing samples** (500 human, 500 AI):  
 
 - **Human-written**:  
     500 essays by second language writers (SLW), sourced from [ICNALE](https://language.sakura.ne.jp/icnale/)  
@@ -51,16 +35,15 @@ Data preprocessing by TAASSC.
 
 ---
 
-## Improvements over v1
+## Data Usage Notice
 
-- Upgraded from Random Forest to **XGBoost**
-- Doubled dataset size (from 300 → 1000+ samples)
-- More stable predictions and improved feature interpretability  
+- The `.txt` files in [`txt_samples/`](./txt_samples) are included **only for demonstration and learning purposes**.  
+  They are not licensed for reuse, redistribution, or commercial use.  
+  See [`txt_samples/LICENSE.txt`](./txt_samples/LICENSE.txt) for full terms.
 
----
-
-## Acknowledgements
-
-Thanks to ICNALE, TAASSC, Hugging Face dataset contributors, and open-source NLP communities.
+- The dataset file `X_binary.csv` is private and is **not licensed** for reuse, redistribution, or modification.  
+  It is shared solely for demonstration purposes and should not be used for any other purpose.
 
 ---
+
+
