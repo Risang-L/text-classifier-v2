@@ -92,7 +92,7 @@ with col1:
     st.markdown(f"### Predicted Label: {label}")
     st.markdown(f"**Confidence:** {confidence:.1f}%")
     st.progress(max(0.0, min(1.0, float(confidence) / 100.0)))
-    st.markdown("#### 🔍 SHAP Contribution Plot")
+    st.markdown("#### SHAP Contribution Plot")
     shap_values = explainer.shap_values(features)
     plt.clf()
     shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns),
@@ -101,8 +101,8 @@ with col1:
 
 # Right: essay + feature table
 with col2:
-    st.markdown("### 📝 Essay Sample")
+    st.markdown("### Essay Sample")
     st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
-    st.markdown("### 📋 Feature Values")
+    st.markdown("### Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
 
