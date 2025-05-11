@@ -137,6 +137,10 @@ with col2:
     ax.yaxis.label.set_fontsize(6)
 
     fig = plt.gcf()
-    fig.set_size_inches(4, 3)
+    fig.set_size_inches(3, 2)    # 🎯 final size to shrink fonts
+    fig.set_dpi(100)
     st.pyplot(fig, clear_figure=True, use_container_width=True)
 
+# --- Footer ---
+st.markdown("---")
+st.markdown("<small>Built with ❤️ using Streamlit and SHAP • Thesis project edition</small>", unsafe_allow_html=True)
