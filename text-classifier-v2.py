@@ -36,9 +36,19 @@ st.markdown("""
     .stDataFrame div {
         font-size: 0.85rem;
     }
-    /* 🎯 Hide Streamlit footer + hamburger menu */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
+    /* 🎯 Completely remove Streamlit footer + hamburger */
+    #MainMenu {display: none;}
+    footer {display: none;}
+    /* 🎯 Make number input full width + remove stepper buttons */
+    input[type=number] {
+        width: 100% !important;
+        -moz-appearance: textfield;
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -87,20 +97,44 @@ with col2:
     confidence = round(np.max(prob) * 100, 2)
 
     st.markdown(f"### Predicted Label: {label}")
-    st.markdown(f"**Confidence:** {confidence:.1f}%")
-    st.progress(max(0.0, min(1.0, float(confidence) / 100.0)))
-    st.markdown("#### 🔍 SHAP Waterfall Plot")
 
+    # 🎯 Custom rounded confidence bar
+    bar_color = "#FF4B4B" if pred == 0 else "#1E90FF"
+    st.markdown(f"**Confidence:**")
+    st.markdown(f"""
+        <div style="background-color: #e0e0e0; border-radius: 25px; height: 25px; width: 100%;">
+            <div style="
+                background-color: {bar_color};
+                width: {confidence}%;
+                height: 100%;
+                border-radius: 25px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+            ">{confidence:.1f}%</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("#### 🔍 SHAP Waterfall Plot")
     shap_values = explainer.shap_values(features)
     plt.clf()
     plt.rcParams.update({'font.size': 8})
 
-    # 🎯 Waterfall plot for single sample
     shap.plots._waterfall.waterfall_legacy(
         explainer.expected_value,
         shap_values[0],
         feature_names=X_full.columns
     )
+
+    # 🎯 Manually shrink all SHAP fonts
+    ax = plt.gca()
+    for item in ax.get_xticklabels() + ax.get_yticklabels():
+        item.set_fontsize(6)
+    ax.title.set_fontsize(6)
+    ax.xaxis.label.set_fontsize(6)
+    ax.yaxis.label.set_fontsize(6)
 
     fig = plt.gcf()
     fig.set_size_inches(4, 3)
