@@ -49,7 +49,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- HEADER + INPUT ---
-st.title("🧠 AI vs Human Essay Classifier")
+st.title("AI vs Human Essay Classifier")
 
 # --- Load data ---
 X_full = pd.read_csv(csv_path)
@@ -89,7 +89,7 @@ with tab1:
     st.subheader("Essay Sample")
     st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
 
-    st.subheader("📋 Feature Values")
+    st.subheader("Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
 
 with tab2:
@@ -125,7 +125,7 @@ with tab2:
     """, unsafe_allow_html=True)
 
     # --- SHAP Waterfall Plot ---
-    st.subheader("🔍 SHAP Waterfall Plot")
+    st.subheader("SHAP Waterfall Plot")
     shap_values = explainer.shap_values(features)
 
     plt.clf()
