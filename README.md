@@ -4,6 +4,7 @@ This project is an extension of [Text Classifier v1](https://github.com/Risang-L
 
 [Live App](https://text-classifier-v2-tglormcyfegrxzctqeiylu.streamlit.app/)
 
+https://text-classifier-v2-tglormcyfegrxzctqeiylu.streamlit.app/
 ---
 
 ## Improvements over v1
