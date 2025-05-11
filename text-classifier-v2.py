@@ -124,12 +124,17 @@ with tab2:
     )
 
     # ✅ The fix
-    import matplotlib.pyplot as plt
-    plt.clf()
-    plt.close('all')
+   plt.close('all')
     fig, ax = plt.subplots(figsize=(6, 4), dpi=100)
     shap.plots.waterfall(shap_expl, show=False)
-    st.pyplot(plt.gcf())
+    fig = plt.gcf()
+
+    # ✅ Dark mode fix: force white background
+    fig.patch.set_facecolor('white')
+    ax = plt.gca()
+    ax.set_facecolor('white')
+
+    st.pyplot(fig)
 
     # Legend
     st.markdown("""
