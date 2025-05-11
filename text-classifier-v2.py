@@ -49,38 +49,42 @@ if not sample_ids:
     st.error("No valid numeric .txt files found in the folder.")
     st.stop()
 
-# --- Centered sample selector ---
-col_center = st.columns([4, 2, 4])
-with col_center[1]:
-    sample_id = st.selectbox("Select a sample #", sample_ids)
-
-txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
-with open(txt_path, "r", encoding="utf-8") as f:
-    text_input = f.read()
-
-features_df = X_full.iloc[[sample_id - 1]]
-features = features_df.to_numpy()
-
-if features.shape[1] != model.n_features_in_:
-    st.error(f"Mismatch in feature shape: expected {model.n_features_in_}, got {features.shape[1]}")
-    st.stop()
-
-# --- Predict ---
-pred = model.predict(features)[0]
-prob = model.predict_proba(features)[0]
-label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
-confidence = round(np.max(prob) * 100, 2)
-
 # --- Layout ---
 col1, col2 = st.columns([2, 3])
 
 with col1:
+    # Number input directly above essay
+    sample_id = st.number_input(
+        "Enter sample number:",
+        min_value=min(sample_ids),
+        max_value=max(sample_ids),
+        value=min(sample_ids),
+        step=1
+    )
+    sample_id = int(sample_id)
+
+    txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
+    with open(txt_path, "r", encoding="utf-8") as f:
+        text_input = f.read()
+
+    features_df = X_full.iloc[[sample_id - 1]]
+    features = features_df.to_numpy()
+
+    if features.shape[1] != model.n_features_in_:
+        st.error(f"Mismatch in feature shape: expected {model.n_features_in_}, got {features.shape[1]}")
+        st.stop()
+
     st.markdown("### 📝 Essay Sample")
     st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
     st.markdown("### 📋 Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
 
 with col2:
+    pred = model.predict(features)[0]
+    prob = model.predict_proba(features)[0]
+    label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
+    confidence = round(np.max(prob) * 100, 2)
+
     st.markdown(f"### Predicted Label: {label}")
     st.markdown(f"**Confidence:** {confidence:.1f}%")
     st.progress(max(0.0, min(1.0, float(confidence) / 100.0)))
@@ -90,5 +94,9 @@ with col2:
     shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns),
                       plot_type="bar", show=False)
     fig = plt.gcf()
-    fig.set_size_inches(5, 4)   
+    fig.set_size_inches(5, 4)   # smaller SHAP plot
     st.pyplot(fig, clear_figure=True, use_container_width=True)
+
+# --- Footer ---
+st.markdown("---")
+st.markdown("<small>Built with ❤️ using Streamlit and SHAP • Thesis project edition</small>", unsafe_allow_html=True)
