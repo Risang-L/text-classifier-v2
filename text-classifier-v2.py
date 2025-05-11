@@ -80,12 +80,4 @@ with col2:
     st.markdown("### 📋 Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
 
-st.markdown("---")
-st.markdown("<small>Built with ❤️ using Streamlit and SHAP • Thesis project edition</small>", unsafe_allow_html=True)
-"""
 
-file_path = "/mnt/data/text-classifier-v2-minimal.py"
-with open(file_path, "w", encoding="utf-8") as f:
-    f.write(final_minimal_code)
-
-file_path
