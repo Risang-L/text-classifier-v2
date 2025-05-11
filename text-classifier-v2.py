@@ -20,21 +20,26 @@ st.markdown("""
     <style>
     .essay-box {
         background-color: #f5f7fa;
-        padding: 1rem;
-        border-radius: 10px;
+        padding: 1.2rem;
+        border-radius: 12px;
         border: 1px solid #ddd;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         font-family: 'Courier New', monospace;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         max-height: 250px;
         overflow-y: auto;
     }
     .block-container {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+    .stDataFrame div {
+        font-size: 0.85rem;
     }
     </style>
 """, unsafe_allow_html=True)
 
+# --- Load data ---
 X_full = pd.read_csv(csv_path)
 txt_dir = txt_folder
 sample_files = [f for f in os.listdir(txt_dir) if f.endswith(".txt") and f.split(".")[0].isdigit()]
@@ -56,14 +61,22 @@ if features.shape[1] != model.n_features_in_:
     st.error(f"Mismatch in feature shape: expected {model.n_features_in_}, got {features.shape[1]}")
     st.stop()
 
+# --- Predict ---
 pred = model.predict(features)[0]
 prob = model.predict_proba(features)[0]
 label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
 confidence = round(np.max(prob) * 100, 2)
 
-col1, col2 = st.columns([3, 2])
+# --- Layout ---
+col1, col2 = st.columns([2, 3])  # essay + features left, prediction + SHAP right
 
 with col1:
+    st.markdown("### 📝 Essay Sample")
+    st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
+    st.markdown("### 📋 Feature Values")
+    st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
+
+with col2:
     st.markdown(f"### Predicted Label: {label}")
     st.markdown(f"**Confidence:** {confidence:.1f}%")
     st.progress(max(0.0, min(1.0, float(confidence) / 100.0)))
@@ -74,11 +87,6 @@ with col1:
                       plot_type="bar", show=False)
     st.pyplot(plt, clear_figure=True, use_container_width=True)
 
-with col2:
-    st.markdown("### 📝 Essay Sample")
-    st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
-    st.markdown("### 📋 Feature Values")
-    st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
-
+# --- Footer ---
 st.markdown("---")
 st.markdown("<small>Built with ❤️ using Streamlit and SHAP • Thesis project edition</small>", unsafe_allow_html=True)
