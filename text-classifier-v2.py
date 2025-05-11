@@ -87,10 +87,11 @@ with tab1:
     st.subheader("Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}))
 
-# --- Tab 2 with SHAP FIX ---
+# --- Tab 2: Prediction and SHAP ---
 with tab2:
     st.subheader(f"Predicted Label: {label}")
 
+    # Custom confidence bar
     st.markdown(f"""
     <div style="height: 30px; background-color: #eee; border-radius: 20px; overflow: hidden; margin-bottom: 1rem;">
         <div style="height: 100%; width: {confidence}%; background-color: {color};
@@ -101,28 +102,40 @@ with tab2:
     """, unsafe_allow_html=True)
 
     st.subheader("SHAP Waterfall Plot")
-
+    
+    # SHAP plot fix
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(features)
 
-    # Detect base_value properly
-    base_value = explainer.expected_value[pred_class] if isinstance(explainer.expected_value, (np.ndarray, list)) else explainer.expected_value
+    # Handle classifier output shape
+    if isinstance(explainer.expected_value, np.ndarray):
+        pred_class = int(pred)
+        base_value = explainer.expected_value[pred_class]
+        values = shap_values[pred_class][0]
+    else:
+        base_value = explainer.expected_value
+        values = shap_values[0]
 
-    # Correct shap values handling
-    single_explanation = shap.Explanation(
-        values=shap_values[0],
+    shap_expl = shap.Explanation(
+        values=values,
         base_values=base_value,
         data=features[0],
         feature_names=X_full.columns.tolist()
     )
 
-    fig = plt.figure(figsize=(6, 6))
-    shap.plots.waterfall(single_explanation, show=False)
+    # ✅ The fix
+    import matplotlib.pyplot as plt
+    plt.clf()
+    plt.close()
+    fig, ax = plt.subplots(figsize=(6, 4), dpi=100)
+    shap.plots.waterfall(shap_expl, show=False, ax=ax)
     st.pyplot(fig)
 
+    # Legend
     st.markdown("""
     <div style="margin-top:1rem; font-size: 0.9rem;">
         <span style="color: crimson;">🔴 Pushes toward Human</span> &nbsp;&nbsp;
         <span style="color: dodgerblue;">🔵 Pushes toward AI</span>
     </div>
     """, unsafe_allow_html=True)
+
