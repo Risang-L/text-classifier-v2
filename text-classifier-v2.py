@@ -105,12 +105,12 @@ with tab2:
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(features)
 
-    # Get correct base value for the predicted class
-    pred_class = int(pred)  # 0 or 1
-    base_value = explainer.expected_value[pred_class] if isinstance(explainer.expected_value, np.ndarray) else explainer.expected_value
+    # Detect base_value properly
+    base_value = explainer.expected_value[pred_class] if isinstance(explainer.expected_value, (np.ndarray, list)) else explainer.expected_value
 
+    # Correct shap values handling
     single_explanation = shap.Explanation(
-        values=shap_values[pred_class][0],
+        values=shap_values[0],
         base_values=base_value,
         data=features[0],
         feature_names=X_full.columns.tolist()
