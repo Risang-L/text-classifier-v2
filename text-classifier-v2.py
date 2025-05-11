@@ -90,7 +90,7 @@ with col2:
     st.markdown("#### 🔍 SHAP Contribution Plot")
     shap_values = explainer.shap_values(features)
     plt.clf()
-    plt.rcParams.update({'font.size': 8})   # 🎯 reduce SHAP font size
+    plt.rcParams.update({'font.size': 6})  
     shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns),
                       plot_type="bar", show=False)
     fig = plt.gcf()
