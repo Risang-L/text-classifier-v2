@@ -12,7 +12,7 @@ csv_path = "X_binary.csv"
 txt_folder = "txt_samples"
 
 # Load model and SHAP explainer
-model = joblib.load("model_xgb.pkl")
+model = joblib.load(model_path)
 explainer = shap.TreeExplainer(model)
 
 # Config
@@ -46,9 +46,8 @@ st.markdown("<div class='main-title'>🧠 AI vs Human Essay Classifier</div>", u
 st.markdown("<div class='sub-text'>Classifies essays using syntactic complexity features and explains decisions using SHAP.</div>", unsafe_allow_html=True)
 
 # Load TAASSC features
-csv_path = "X_binary.csv"  # You can change this path to match your thesis data
 X_full = pd.read_csv(csv_path)
-txt_dir = "txt_samples"  # Directory containing .txt files
+txt_dir = txt_folder
 
 # Sidebar sample selection
 sample_files = [f for f in os.listdir(txt_dir) if f.endswith(".txt") and f.split(".")[0].isdigit()]
@@ -104,8 +103,10 @@ with col1:
 with col2:
     st.markdown("#### 🔍 SHAP Contribution Plot")
     shap_values = explainer.shap_values(features)
-    shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns), plot_type="bar", show=False)
-    st.pyplot(plt.gcf())
+    plt.clf()  # 🟢 clear previous figures (this prevents crash)
+    shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns),
+                      plot_type="bar", show=False)
+    st.pyplot(plt)  # safer than plt.gcf()
 
 # Essay display
 st.markdown("---")
