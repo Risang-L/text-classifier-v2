@@ -49,7 +49,11 @@ if not sample_ids:
     st.error("No valid numeric .txt files found in the folder.")
     st.stop()
 
-sample_id = st.selectbox("Select a sample #", sample_ids)
+# --- Centered sample selector ---
+col_center = st.columns([4, 2, 4])
+with col_center[1]:
+    sample_id = st.selectbox("Select a sample #", sample_ids)
+
 txt_path = os.path.join(txt_dir, f"{sample_id:03d}.txt")
 with open(txt_path, "r", encoding="utf-8") as f:
     text_input = f.read()
@@ -68,7 +72,7 @@ label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
 confidence = round(np.max(prob) * 100, 2)
 
 # --- Layout ---
-col1, col2 = st.columns([2, 3])  # essay + features left, prediction + SHAP right
+col1, col2 = st.columns([2, 3])
 
 with col1:
     st.markdown("### 📝 Essay Sample")
@@ -85,8 +89,6 @@ with col2:
     plt.clf()
     shap.summary_plot(shap_values, pd.DataFrame(features, columns=X_full.columns),
                       plot_type="bar", show=False)
-    st.pyplot(plt, clear_figure=True, use_container_width=True)
-
-# --- Footer ---
-st.markdown("---")
-st.markdown("<small>Built with ❤️ using Streamlit and SHAP • Thesis project edition</small>", unsafe_allow_html=True)
+    fig = plt.gcf()
+    fig.set_size_inches(5, 4)   
+    st.pyplot(fig, clear_figure=True, use_container_width=True)
