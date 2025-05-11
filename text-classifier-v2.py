@@ -69,7 +69,7 @@ prob = model.predict_proba(features)[0]
 confidence = round(np.max(prob) * 100, 1)
 
 label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
-color = "#1E90FF" if pred == 0 else "##FF0051"
+color = "#1E90FF" if pred == 0 else "#FF0051"
 
 # --- Tabs ---
 tab1, tab2 = st.tabs(["📝 Essay & Features", "🔍 Prediction & Explanation"])
