@@ -8,124 +8,105 @@ import os
 
 # --- Load model and data ---
 model = joblib.load("model_xgb.pkl")
-X_full = pd.read_csv("X_binary.csv")
+X_test = pd.read_csv("X_binary.csv")
 txt_folder = "txt_samples"
 
-# --- Configure page ---
-st.set_page_config(page_title="AI vs Human Essay Classifier", layout="centered")
+txt_files = [f for f in os.listdir(txt_folder) if f.endswith(".txt")]
+sample_numbers = sorted([f.replace(".txt", "") for f in txt_files])
 
-# --- Custom CSS for sticky input and tabs ---
+# --- UI Styles ---
+st.set_page_config(page_title="AI vs Human Essay Classifier", layout="wide")
 st.markdown("""
     <style>
-    /* Sticky input and tabs */
-    .sticky-header {
+    /* Sticky entire header block including title + input + tabs */
+    div[data-testid="stAppViewContainer"] > div:first-child {
         position: sticky;
         top: 0;
         background-color: white;
         z-index: 999;
-        padding-top: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid #e6e6e6;
+        padding-bottom: 10px;
     }
-    /* Style the tabs */
-    div[data-testid="stTabs"] > div > div:first-child {
-        position: sticky;
-        top: 4.5rem;
-        background-color: white;
-        z-index: 998;
-    }
-    /* Improve input and tab appearance */
-    input, button[data-baseweb="tab"] > div {
-        font-size: 1.1rem;
+    /* Enlarge tab labels */
+    button[data-baseweb="tab"] > div {
+        font-size: 1.1rem !important;
+        padding: 6px 12px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Sticky Input ---
-with st.container():
-    st.markdown('<div class="sticky-header">', unsafe_allow_html=True)
-    st.title("🧠 AI vs Human Essay Classifier")
-    sample_id = st.text_input("Sample #", value="1", max_chars=3)
-    st.markdown("</div>", unsafe_allow_html=True)
+# --- Title + Input ---
+st.title("AI vs Human Essay Classifier")
 
-# --- Validate sample ---
-if not sample_id.isdigit() or int(sample_id) < 1:
-    st.error("⚠️ Please enter a valid sample number (e.g., 1, 2, 3).")
+selected_input = st.text_input("Sample #:", "1")
+if not selected_input.isdigit() or int(selected_input) <= 0:
+    st.error("Please enter a valid positive number.")
     st.stop()
 
-sample_num = int(sample_id)
-txt_path = os.path.join(txt_folder, f"{sample_num:03d}.txt")
-
-if not os.path.exists(txt_path):
-    st.error(f"❌ Sample {sample_num} not found.")
+selected_sample = selected_input.zfill(3)
+if selected_sample not in sample_numbers:
+    st.error("Sample not found.")
     st.stop()
 
-# Load text
-with open(txt_path, "r", encoding="utf-8") as f:
-    essay_text = f.read()
+# --- Load sample text and features ---
+txt_path = os.path.join(txt_folder, f"{selected_sample}.txt")
+with open(txt_path, "r", encoding="utf-8") as file:
+    sample_text = file.read()
 
-# Load features
-features_df = X_full.iloc[[sample_num - 1]]
-features = features_df.to_numpy()
+tassc_index = int(selected_sample) - 1
+sample = X_test.iloc[[tassc_index]]
 
-# --- Predict ---
-pred = model.predict(features)[0]
-prob = model.predict_proba(features)[0]
-confidence = round(np.max(prob) * 100, 1)
+# --- Prediction ---
+pred = model.predict(sample)[0]
+prob = model.predict_proba(sample)[0]
+confidence = round(max(prob) * 100, 2)
 
-label = "🤖 AI" if pred == 0 else "🧑‍🏫 Human"
-color = "#1E90FF" if pred == 0 else "#FF4B4B"
+label = "🧑‍🏫 Human" if pred == 1 else "🤖 AI"
+bar_color = "#FF4B4B" if pred == 1 else "#1E90FF"
 
 # --- Tabs ---
-tab1, tab2 = st.tabs(["📝 Essay & Features", "🔍 Prediction & Explanation"])
+tab1, tab2 = st.tabs(["📝 Essay & Features", "🤖 Prediction & Explanation"])
 
-# --- Tab 1: Essay and Features ---
+# --- Tab 1 ---
 with tab1:
     st.subheader("Essay Sample")
     st.markdown(f"""
-    <div style='padding: 1rem; background-color: #f5f5f5; border-radius: 8px;
-                 border: 1px solid #ddd; font-family: monospace; font-size: 0.95rem;'>
-    {essay_text}
+    <div style='padding: 12px; background-color: #f9f9f9;
+    border: 1px solid #ddd; border-radius: 8px; font-family: monospace; font-size: 0.95rem;'>
+    {sample_text}
     </div>
     """, unsafe_allow_html=True)
 
     st.subheader("Feature Values")
-    st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}))
+    st.dataframe(sample.T.rename(columns={sample.index[0]: "Value"}))
 
-# --- Tab 2: Prediction and SHAP ---
+# --- Tab 2 ---
 with tab2:
     st.subheader(f"Predicted Label: {label}")
-
-    # Custom confidence bar
     st.markdown(f"""
-    <div style="height: 30px; background-color: #eee; border-radius: 20px; overflow: hidden; margin-bottom: 1rem;">
-        <div style="height: 100%; width: {confidence}%; background-color: {color};
-                    text-align: center; line-height: 30px; color: white; font-weight: bold; font-size: 1rem;">
+    <div style="position: relative; height: 28px; width: 100%; background-color: #eee;
+                border-radius: 20px; margin-top: 8px; box-shadow: inset 0 0 3px rgba(0,0,0,0.1);">
+        <div style="height: 100%; width: {confidence}%; background-color: {bar_color};
+                    border-radius: 20px; text-align: center; color: white;
+                    font-weight: bold; line-height: 28px; font-size: 1.0rem;">
             {confidence:.1f}%
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.subheader("SHAP Waterfall Plot")
-    
-    # SHAP plot properly
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(features)
-    
-    shap_expl = shap.Explanation(
-        values=shap_values[0],
-        base_values=explainer.expected_value,
-        data=features[0],
-        feature_names=X_full.columns.tolist()
+    st.subheader("🔍 SHAP Waterfall Plot")
+    explainer = shap.Explainer(model)
+    shap_values = explainer(sample)
+
+    single_explanation = shap.Explanation(
+        values=shap_values.values[0],
+        base_values=shap_values.base_values[0],
+        data=sample.iloc[0].values,
+        feature_names=sample.columns.tolist()
     )
 
-    shap.plots.waterfall(shap_expl, show=False)
+    # Show full waterfall plot
+    shap.plots.waterfall(single_explanation, show=False)
     st.pyplot(plt.gcf())
 
-    # Legend
-    st.markdown("""
-    <div style="margin-top:1rem; font-size: 0.9rem;">
-        <span style="color: crimson;">🔴 Pushes toward Human</span> &nbsp;&nbsp;
-        <span style="color: dodgerblue;">🔵 Pushes toward AI</span>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("🔴 = Pushes toward Human (SLW) &nbsp;&nbsp;&nbsp; 🔵 = Pushes toward AI", unsafe_allow_html=True)
