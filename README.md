@@ -2,7 +2,7 @@
 # Text Classifier v2: AI vs SLW (Second Language Writers)
 This project is an extension of [Text Classifier v1](https://github.com/Risang-L/text-classifier), using a stronger **XGBoost model** and larger dataset. It explores linguistic data science and syntactic complexity modeling.
 
-[Live App]()
+[Live App](https://text-classifier-v2-tglormcyfegrxzctqeiylu.streamlit.app/)
 
 ---
 
