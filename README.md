@@ -9,7 +9,7 @@ This project is an extension of [Text Classifier v1](https://github.com/Risang-L
 ## Improvements over v1
 
 - Upgraded from Random Forest to **XGBoost**
-- Doubled dataset for training (from 300 → 1000 samples)
+- More dataset for training (from 300 → 1000 samples)
 - More stable predictions and improved feature interpretability
   
 ---
