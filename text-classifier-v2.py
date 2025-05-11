@@ -37,7 +37,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🧠 AI vs Human Essay Classifier")
+st.title("AI vs Human Essay Classifier")
 
 # --- Load data ---
 X_full = pd.read_csv(csv_path)
@@ -77,7 +77,7 @@ with tab1:
     st.subheader("Essay Sample")
     st.markdown(f"<div class='essay-box'>{text_input}</div>", unsafe_allow_html=True)
 
-    st.subheader("📋 Feature Values")
+    st.subheader("Feature Values")
     st.dataframe(features_df.T.rename(columns={features_df.index[0]: "Value"}), height=300)
 
 with tab2:
@@ -90,7 +90,7 @@ with tab2:
     st.markdown(f"### Predicted Label: {label}")
 
     # 🎯 Custom confidence bar
-    bar_color = "#FF4B4B" if pred == 0 else "#1E90FF"
+    bar_color = "#1E90FF" if pred == 0 else "#FF4B4B" 
     st.markdown(f"**Confidence:**")
     st.markdown(f"""
         <div style="background-color: #e0e0e0; border-radius: 25px; height: 25px; width: 100%;">
@@ -108,26 +108,14 @@ with tab2:
         </div>
     """, unsafe_allow_html=True)
 
-    st.subheader("🔍 SHAP Waterfall Plot")
+    st.subheader("SHAP Waterfall Plot")
     shap_values = explainer.shap_values(features)
-    plt.clf()
-    plt.rcParams.update({'font.size': 8})
 
-    shap.plots._waterfall.waterfall_legacy(
-        explainer.expected_value,
-        shap_values[0],
+    # 🎯 Full SHAP waterfall with feature values
+    shap.plots.waterfall(shap.Explanation(
+        values=shap_values[0],
+        base_values=explainer.expected_value,
+        data=features[0],
         feature_names=X_full.columns
-    )
-
-    # 🎯 Shrink SHAP plot font sizes
-    ax = plt.gca()
-    for item in ax.get_xticklabels() + ax.get_yticklabels():
-        item.set_fontsize(6)
-    ax.title.set_fontsize(6)
-    ax.xaxis.label.set_fontsize(6)
-    ax.yaxis.label.set_fontsize(6)
-
-    fig = plt.gcf()
-    fig.set_size_inches(3, 2)
-    fig.set_dpi(100)
-    st.pyplot(fig, clear_figure=True, use_container_width=True)
+    ))
+    st.pyplot(plt.gcf(), clear_figure=True, use_container_width=True)
