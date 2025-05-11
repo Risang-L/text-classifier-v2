@@ -36,6 +36,9 @@ st.markdown("""
     .stDataFrame div {
         font-size: 0.85rem;
     }
+    /* 🎯 Hide Streamlit footer + hamburger menu */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
