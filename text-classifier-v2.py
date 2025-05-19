@@ -123,6 +123,11 @@ with tab2:
         feature_names=X_full.columns.tolist()
     )
 
+    plt.clf()
+    plt.close('all')
+    shap.plots.waterfall(shap_expl, show=False)
+    st.pyplot(plt.gcf())
+
     # Legend
     st.markdown("""
     <div style="margin-top:1rem; font-size: 0.9rem;">
