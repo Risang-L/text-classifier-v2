@@ -123,19 +123,6 @@ with tab2:
         feature_names=X_full.columns.tolist()
     )
 
-    # ✅ The fix
-    plt.close('all')
-        fig, ax = plt.subplots(figsize=(6, 4), dpi=100)
-        shap.plots.waterfall(shap_expl, show=False)
-        fig = plt.gcf()
-
-    # ✅ Dark mode fix: force white background
-    fig.patch.set_facecolor('white')
-        ax = plt.gca()
-        ax.set_facecolor('white')
-
-        st.pyplot(fig)
-
     # Legend
     st.markdown("""
     <div style="margin-top:1rem; font-size: 0.9rem;">
